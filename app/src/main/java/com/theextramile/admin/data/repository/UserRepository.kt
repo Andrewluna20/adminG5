@@ -1,7 +1,7 @@
 package com.theextramile.admin.data.repository
 
 import com.theextramile.admin.data.api.ApiClient
-import com.theextramile.admin.data.api.DeleteUserRequest
+import com.theextramile.admin.data.api.IdRequest
 import com.theextramile.admin.data.api.SaveUserRequest
 import com.theextramile.admin.data.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,7 +61,7 @@ class UserRepository {
     suspend fun deleteUser(id: String): Result<Unit> {
         return try {
             val response = ApiClient.service.deleteUser(
-                request = DeleteUserRequest(id)
+                request = IdRequest(id)
             )
             if (response.isSuccessful) {
                 refresh()
