@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Carpetas que el FileProvider puede compartir.
+
+    Lo declara el <provider> de AndroidManifest.xml y hoy lo usa una sola
+    pantalla: el CSV del Extracto, que se genera en cache/extractos y se
+    comparte con el selector de Android (desde Android 7 no se pueden pasar
+    rutas file:// entre apps).
+
+    Solo se abre la caché: se borra sola y ahí no hay nada del usuario.
+-->
+<paths>
+    <cache-path name="extractos" path="extractos/" />
+    <cache-path name="cache" path="." />
+</paths>
