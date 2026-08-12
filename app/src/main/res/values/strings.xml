@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Admin G</string>
+    <string name="welcome">Bienvenido</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="email">Correo</string>
+    <string name="password">Contraseña</string>
+    <string name="login_subtitle">Accede a tu panel de administración</string>
+    <string name="invalid_credentials">Correo o contraseña incorrectos</string>
+    <string name="no_connection">Sin conexión a internet</string>
+    <string name="retry">Reintentar</string>
+    <string name="loading">Cargando…</string>
+    <string name="error_unknown">Ocurrió un error inesperado</string>
+</resources>

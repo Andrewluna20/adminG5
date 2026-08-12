@@ -1,0 +1,24 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Letra G estilizada con gradiente AZUL ELÉCTRICO → CYAN -->
+    <path
+        android:pathData="M54,30 C40.7,30 30,40.7 30,54 C30,67.3 40.7,78 54,78 C61.4,78 68,74.7 72.5,69.5 L72.5,55 L56,55 L56,62 L65,62 L65,66 C62.4,68.5 58.4,70 54,70 C45.2,70 38,62.8 38,54 C38,45.2 45.2,38 54,38 C58.4,38 62.4,39.5 65,42 L70.5,36.5 C66,32.5 60.5,30 54,30 Z"
+        android:strokeWidth="0">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="30"
+                android:startY="30"
+                android:endX="78"
+                android:endY="78">
+                <item android:offset="0.0" android:color="#FF3B82F6" />
+                <item android:offset="1.0" android:color="#FF06B6D4" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>
