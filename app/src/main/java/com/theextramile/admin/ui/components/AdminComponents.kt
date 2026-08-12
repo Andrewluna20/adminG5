@@ -344,13 +344,19 @@ fun SectionPlaceholder(
     }
 }
 
-/** Cuadrito de color con su valor hex — el selector de la sección Colores */
+/**
+ * Cuadrito de color con su valor hex — el selector de la sección Colores.
+ *
+ * Ojo con el orden: `onHexChange` va el ÚLTIMO para que se pueda llamar con
+ * lambda pegada, `ColorField("Fondo", hex) { ... }`. Si `modifier` fuera el
+ * último, la lambda se engancharía a él y Kotlin no lo perdona.
+ */
 @Composable
 fun ColorField(
     label: String,
     hex: String,
-    onHexChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onHexChange: (String) -> Unit
 ) {
     val parsed = remember(hex) { parseHexColor(hex) }
     Row(
