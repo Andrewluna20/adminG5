@@ -1,0 +1,87 @@
+name: Build Android APK
+
+# Se ejecuta en cada push a main/master y también a mano desde la pestaña
+# Actions → Build Android APK → Run workflow.
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Compilar APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Instalar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # El repo no lleva gradle-wrapper.jar (es un binario), así que se baja el
+      # de la versión que declara gradle-wrapper.properties: Gradle 8.4, la que
+      # pide el plugin de Android 8.2.2.
+      - name: Preparar el wrapper de Gradle
+        run: |
+          mkdir -p gradle/wrapper
+          curl -fsSL -o gradle/wrapper/gradle-wrapper.jar \
+            https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar
+          if [ ! -f gradlew ]; then
+            curl -fsSL -o gradlew https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradlew
+          fi
+          chmod +x gradlew
+          ls -la gradle/wrapper/
+
+      - name: Preparar Gradle (con caché)
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Compilar APK de depuración
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      # El APK de release va firmado con la llave de depuración (así lo define
+      # build.gradle.kts), así que se instala igual que el otro. Para subirlo a
+      # Google Play habría que firmarlo con una llave propia.
+      - name: Compilar APK de release
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Renombrar los APK
+        run: |
+          mkdir -p artefactos
+          cp app/build/outputs/apk/debug/*.apk   artefactos/adminG-debug.apk
+          cp app/build/outputs/apk/release/*.apk artefactos/adminG-release.apk
+          ls -la artefactos/
+
+      - name: Subir el APK de depuración
+        uses: actions/upload-artifact@v4
+        with:
+          name: adminG-debug-apk
+          path: artefactos/adminG-debug.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Subir el APK de release
+        uses: actions/upload-artifact@v4
+        with:
+          name: adminG-release-apk
+          path: artefactos/adminG-release.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      # Si algo falla, deja a mano el informe de errores de Gradle
+      - name: Subir el informe de errores
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-de-errores
+          path: |
+            app/build/reports/
+            build/reports/
+          retention-days: 7
+          if-no-files-found: ignore
