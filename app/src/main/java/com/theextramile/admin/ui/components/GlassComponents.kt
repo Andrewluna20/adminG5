@@ -98,7 +98,7 @@ fun GradientAvatar(
     ) {
         Text(
             text = text.take(1).uppercase(),
-            color = TextPrimary,
+            color = TextOnAccent,
             fontWeight = FontWeight.Bold,
             fontSize = (size.value * 0.42).sp
         )
@@ -125,7 +125,7 @@ fun SquareGradientAvatar(
     ) {
         Text(
             text = text.take(1).uppercase(),
-            color = TextPrimary,
+            color = TextOnAccent,
             fontWeight = FontWeight.Bold,
             fontSize = (size.value * 0.42).sp
         )
@@ -180,7 +180,7 @@ fun GradientIconBox(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = TextPrimary,
+            tint = TextOnAccent,
             modifier = Modifier.size(iconSize)
         )
     }
@@ -212,19 +212,19 @@ fun GradientButton(
     ) {
         if (isLoading) {
             CircularProgressIndicator(
-                color = TextPrimary,
+                color = TextOnAccent,
                 strokeWidth = 2.5.dp,
                 modifier = Modifier.size(22.dp)
             )
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (icon != null) {
-                    Icon(icon, null, tint = TextPrimary, modifier = Modifier.size(18.dp))
+                    Icon(icon, null, tint = TextOnAccent, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                 }
                 Text(
                     text = text,
-                    color = TextPrimary,
+                    color = TextOnAccent,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
                     letterSpacing = 1.2.sp

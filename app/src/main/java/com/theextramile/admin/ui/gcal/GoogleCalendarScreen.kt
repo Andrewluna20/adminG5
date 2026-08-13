@@ -151,7 +151,7 @@ fun GoogleCalendarScreen(
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteAccount(acc.email); deleteConfirm = null
-                }) { Text("Desvincular", color = Color(0xFFF87171)) }
+                }) { Text("Desvincular", color = OrangeRed) }
             },
             dismissButton = {
                 TextButton(onClick = { deleteConfirm = null }) {
@@ -260,7 +260,7 @@ private fun AccountCard(
             }
             IconButton(onClick = onDelete, modifier = Modifier.size(34.dp)) {
                 Icon(Icons.Default.Delete, "Desvincular",
-                    tint = Color(0xFFF87171),
+                    tint = OrangeRed,
                     modifier = Modifier.size(18.dp))
             }
         }

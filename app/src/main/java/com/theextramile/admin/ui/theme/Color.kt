@@ -7,96 +7,121 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 /* ═══════════════════════════════════════════════════════
-   Admin G — Paleta DINAMICA (controlable desde el HUB)
+   Admin G — Paleta CLARA
 
-   Las constantes se inicializan con valores por defecto
-   (azul eléctrico + cyan), pero TEMAdminTheme las actualiza
-   cuando el RemoteTheme cambia.
+   Los nombres de los tokens son los mismos de siempre (BgDeep,
+   TextPrimary, GlassWhite…) para que las pantallas no cambien: lo que
+   cambió son los valores. BgDeep ya no es "el más oscuro" sino "el fondo
+   de página", y TextPrimary ya no es blanco sino casi negro.
 
-   Por eso son `var` y no `val`.
+   ⚠️ Fondos, textos y bordes son FIJOS. El tema remoto del HUB solo
+   controla los acentos (ver applyDynamicColors más abajo): si también
+   mandara los fondos, la app volvería a ponerse oscura sola.
    ═══════════════════════════════════════════════════════ */
 
-// ═══════ FONDOS (mutables) ═══════
-var BgDeep by mutableStateOf(Color(0xFF050810))
+// ═══════ FONDOS ═══════
+/** Fondo de página: un gris muy claro para que las tarjetas blancas se vean */
+var BgDeep by mutableStateOf(Color(0xFFF4F6F9))
     private set
-var BgMid by mutableStateOf(Color(0xFF0A1226))
+
+/** Superficies: hojas inferiores y tarjetas */
+var BgMid by mutableStateOf(Color(0xFFFFFFFF))
     private set
-var BgLight by mutableStateOf(Color(0xFF101D38))
+
+/** Diálogos y la barra de guardar */
+var BgLight by mutableStateOf(Color(0xFFFFFFFF))
     private set
 
 // ═══════ ACENTOS PRINCIPALES ═══════
-var Purple by mutableStateOf(Color(0xFF3B82F6))
+// Van más oscuros que en el tema anterior: sobre blanco, un azul claro no
+// se lee. Todos cumplen contraste suficiente sobre fondo claro.
+var Purple by mutableStateOf(Color(0xFF2563EB))
     private set
-var PurpleDark by mutableStateOf(Color(0xFF1E40AF))
+var PurpleDark by mutableStateOf(Color(0xFF1D4ED8))
     private set
-var PurpleLight by mutableStateOf(Color(0xFF60A5FA))
+var PurpleLight by mutableStateOf(Color(0xFF3B82F6))
     private set
-var Pink by mutableStateOf(Color(0xFF06B6D4))
+var Pink by mutableStateOf(Color(0xFF0891B2))
     private set
-var PinkDark by mutableStateOf(Color(0xFF0891B2))
+var PinkDark by mutableStateOf(Color(0xFF0E7490))
     private set
 
 // ═══════ ACENTOS SECUNDARIOS ═══════
-var BlueElectric by mutableStateOf(Color(0xFF3B82F6))
+var BlueElectric by mutableStateOf(Color(0xFF2563EB))
     private set
-var BlueDeep by mutableStateOf(Color(0xFF1E3A8A))
+var BlueDeep by mutableStateOf(Color(0xFF1E40AF))
     private set
-var Cyan by mutableStateOf(Color(0xFF06B6D4))
+var Cyan by mutableStateOf(Color(0xFF0891B2))
     private set
-var CyanLight by mutableStateOf(Color(0xFF22D3EE))
+
+/** El acento que más se usa como texto (enlaces, títulos de sección) */
+var CyanLight by mutableStateOf(Color(0xFF0E7490))
     private set
-var CyanBright by mutableStateOf(Color(0xFF67E8F9))
+var CyanBright by mutableStateOf(Color(0xFF0891B2))
     private set
 
 // ═══════ ACENTOS TERCIARIOS ═══════
-var OrangeWarm by mutableStateOf(Color(0xFFF59E0B))
+var OrangeWarm by mutableStateOf(Color(0xFFD97706))
     private set
-var OrangeRed by mutableStateOf(Color(0xFFEF4444))
+var OrangeRed by mutableStateOf(Color(0xFFDC2626))
     private set
-var GreenNeon by mutableStateOf(Color(0xFF10B981))
+var GreenNeon by mutableStateOf(Color(0xFF059669))
     private set
-var GreenLight by mutableStateOf(Color(0xFF34D399))
+var GreenLight by mutableStateOf(Color(0xFF047857))
     private set
-var Yellow by mutableStateOf(Color(0xFFFBBF24))
+var Yellow by mutableStateOf(Color(0xFFB45309))
     private set
 
-// ═══════ TEXTO (constante - blanco siempre va sobre oscuro) ═══════
-val TextPrimary = Color(0xFFFFFFFF)
-val TextSecondary = Color(0xFFA8B4CC)
-val TextMuted = Color(0xFF6B7891)
-val TextDim = Color(0xFF4A5670)
+// ═══════ TEXTO ═══════
+// Constantes: sobre fondo claro el texto siempre va oscuro.
+val TextPrimary = Color(0xFF0F172A)
+val TextSecondary = Color(0xFF475569)
+val TextMuted = Color(0xFF64748B)
+val TextDim = Color(0xFF94A3B8)
 
-// ═══════ CARDS / GLASS ═══════
-val GlassWhite = Color(0x14FFFFFF)
-val GlassWhite2 = Color(0x0AFFFFFF)
-val GlassBorder = Color(0x1AFFFFFF)
-val GlassBorderStrong = Color(0x33FFFFFF)
+/**
+ * Texto e iconos que van ENCIMA de un color o gradiente (botones con
+ * gradiente, avatares, cuadros de icono). Ahí sigue mandando el blanco:
+ * si se usara TextPrimary, quedaría casi negro sobre azul.
+ */
+val TextOnAccent = Color(0xFFFFFFFF)
+
+// ═══════ TARJETAS Y BORDES ═══════
+/** Relleno de tarjeta: blanco sólido sobre el gris del fondo */
+val GlassWhite = Color(0xFFFFFFFF)
+
+/** Relleno de los campos de texto, para distinguirlos de la tarjeta */
+val GlassWhite2 = Color(0xFFF1F4F8)
+
+val GlassBorder = Color(0x14000000)
+val GlassBorderStrong = Color(0x29000000)
 
 // ═══════ ESTADOS DE RESERVA ═══════
-var StatusPendingBg by mutableStateOf(Color(0x33FBBF24))
+var StatusPendingBg by mutableStateOf(Color(0x1FD97706))
     private set
-var StatusPendingText by mutableStateOf(Color(0xFFFBBF24))
+var StatusPendingText by mutableStateOf(Color(0xFFB45309))
     private set
-var StatusConfirmedBg by mutableStateOf(Color(0x3310B981))
+var StatusConfirmedBg by mutableStateOf(Color(0x1F059669))
     private set
-var StatusConfirmedText by mutableStateOf(Color(0xFF34D399))
+var StatusConfirmedText by mutableStateOf(Color(0xFF047857))
     private set
-var StatusCancelledBg by mutableStateOf(Color(0x33EF4444))
+var StatusCancelledBg by mutableStateOf(Color(0x1FDC2626))
     private set
-var StatusCancelledText by mutableStateOf(Color(0xFFF87171))
+var StatusCancelledText by mutableStateOf(Color(0xFFB91C1C))
     private set
 
-// WhatsApp (constante)
+// WhatsApp (constante, es su verde de marca)
 val WhatsApp = Color(0xFF25D366)
 
 /**
- * Actualiza todas las constantes de color desde el tema remoto.
- * Llamado por TEMAdminTheme cuando cambia el RemoteTheme.
+ * Aplica los acentos del tema remoto del HUB.
+ *
+ * Ojo: ya NO recibe los fondos. El tema claro es fijo; el HUB solo puede
+ * cambiar los colores de marca. Si el HUB manda colores muy claros, el
+ * texto sobre blanco pierde contraste — por eso conviene mandar tonos
+ * medios u oscuros (600/700 de una escala tipo Tailwind).
  */
 internal fun applyDynamicColors(
-    bgDeep: Color,
-    bgMid: Color,
-    bgLight: Color,
     primary: Color,
     primaryDark: Color,
     primaryLight: Color,
@@ -107,48 +132,39 @@ internal fun applyDynamicColors(
     warning: Color,
     danger: Color
 ) {
-    BgDeep = bgDeep
-    BgMid = bgMid
-    BgLight = bgLight
-
-    // Primary mapea a Purple/BlueElectric (mismo color)
     Purple = primary
     PurpleDark = primaryDark
     PurpleLight = primaryLight
     BlueElectric = primary
     BlueDeep = primaryDark
 
-    // Secondary mapea a Pink/Cyan
     Pink = secondary
     PinkDark = secondaryDark
     Cyan = secondary
 
-    // Accent
     CyanLight = accent
     CyanBright = accent
 
-    // Estados (con alpha 0x33 para los backgrounds = 20% de opacidad)
     GreenNeon = success
     GreenLight = success
-    StatusConfirmedBg = success.copy(alpha = 0.2f)
+    StatusConfirmedBg = success.copy(alpha = 0.12f)
     StatusConfirmedText = success
 
     OrangeWarm = warning
     Yellow = warning
-    StatusPendingBg = warning.copy(alpha = 0.2f)
+    StatusPendingBg = warning.copy(alpha = 0.12f)
     StatusPendingText = warning
 
     OrangeRed = danger
-    StatusCancelledBg = danger.copy(alpha = 0.2f)
+    StatusCancelledBg = danger.copy(alpha = 0.12f)
     StatusCancelledText = danger
 }
 
 /* ═══════════════════════════════════════════════════════
-   Gradientes DINAMICOS (recomputados cuando cambian los colores)
+   Gradientes
 
-   Compose tracks reads de mutableState, así que cuando los colores
-   cambian, los componentes que usen Gradients.X se re-componen
-   automáticamente.
+   Se recalculan solos cuando cambian los acentos, porque Compose observa
+   las lecturas de mutableState.
    ═══════════════════════════════════════════════════════ */
 
 object Gradients {
@@ -170,23 +186,20 @@ object Gradients {
     val PinkOrange: Brush
         get() = Brush.linearGradient(listOf(Cyan, BlueElectric))
 
-    /** Fondo principal de la app — usa los colores dinámicos */
+    /** Fondo principal: un blanco apenas degradado, no un color plano */
     val Background: Brush
-        get() = Brush.verticalGradient(
-            colors = listOf(BgDeep, BgMid, BgDeep)
-        )
+        get() = Brush.verticalGradient(colors = listOf(BgDeep, BgMid, BgDeep))
 
-    /** Fondo del login (más dramático) */
+    /** Fondo del login — el mismo tono claro, sin el azul oscuro de antes */
     val LoginBackground: Brush
-        get() = Brush.verticalGradient(
-            colors = listOf(BgDeep, BgMid, BlueDeep)
-        )
+        get() = Brush.verticalGradient(colors = listOf(BgMid, BgDeep, BgMid))
 
+    /** Velo sutil para superponer sobre tarjetas */
     val Glass = Brush.linearGradient(
-        colors = listOf(Color(0x1FFFFFFF), Color(0x0AFFFFFF))
+        colors = listOf(Color(0x0A000000), Color(0x03000000))
     )
 
-    /** Gradiente único para avatar basado en string hash */
+    /** Gradiente único por avatar, a partir del nombre */
     fun forAvatar(seed: String): Brush {
         val gradients = listOf(
             Brush.linearGradient(listOf(BlueElectric, Cyan)),
@@ -194,7 +207,7 @@ object Gradients {
             Brush.linearGradient(listOf(Cyan, CyanBright)),
             Brush.linearGradient(listOf(GreenNeon, Cyan)),
             Brush.linearGradient(listOf(BlueElectric, GreenNeon)),
-            Brush.linearGradient(listOf(Color(0xFF6366F1), BlueElectric)),
+            Brush.linearGradient(listOf(Color(0xFF4F46E5), BlueElectric)),
             Brush.linearGradient(listOf(Cyan, BlueDeep)),
         )
         val hash = seed.fold(0) { acc, c -> acc + c.code }

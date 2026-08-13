@@ -1,0 +1,29 @@
+# Compilación
+/build
+/app/build
+.gradle/
+local.properties
+*.apk
+*.aab
+
+# Llaves de firma — que no lleguen nunca al repositorio
+*.jks
+*.keystore
+keystore.properties
+
+# Datos del servidor: aquí viven los secretos del sitio (Bold, credenciales de
+# Google Calendar, cuenta de servicio de FCM, llave DKIM, tokens de sesión).
+# La app los pide al servidor con el token del login; no van en el repo.
+/data/
+data/*.json
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Sistema
+.DS_Store
+Thumbs.db

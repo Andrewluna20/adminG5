@@ -212,7 +212,7 @@ fun ReservationDetailSheet(
                         text = "Cancelar reserva",
                         onClick = onCancel,
                         icon = Icons.Default.Close,
-                        tint = Color(0xFFF87171)
+                        tint = OrangeRed
                     )
                 }
                 reservation.isConfirmed -> {
@@ -233,7 +233,7 @@ fun ReservationDetailSheet(
                         text = "Ver factura (PDF)",
                         onClick = onPreviewInvoice,
                         icon = Icons.Default.PictureAsPdf,
-                        tint = Color(0xFFA78BFA)
+                        tint = PurpleLight
                     )
                     Spacer(Modifier.height(16.dp))
 
@@ -248,7 +248,7 @@ fun ReservationDetailSheet(
                         text = "Cancelar reserva",
                         onClick = onCancel,
                         icon = Icons.Default.Close,
-                        tint = Color(0xFFF87171)
+                        tint = OrangeRed
                     )
                 }
                 reservation.isCancelled -> {

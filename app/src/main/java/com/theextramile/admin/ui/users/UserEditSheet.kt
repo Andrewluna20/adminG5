@@ -114,8 +114,8 @@ fun UserEditSheet(
                     unfocusedTextColor = TextPrimary,
                     focusedBorderColor = Purple,
                     unfocusedBorderColor = GlassBorder,
-                    focusedContainerColor = Color(0x0FFFFFFF),
-                    unfocusedContainerColor = Color(0x0AFFFFFF),
+                    focusedContainerColor = GlassWhite2,
+                    unfocusedContainerColor = GlassWhite2,
                     cursorColor = Purple
                 )
             )
@@ -137,8 +137,8 @@ fun UserEditSheet(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0x33EF4444),
-                    contentColor = Color(0xFFF87171)
+                    color = StatusCancelledBg,
+                    contentColor = OrangeRed
                 ) { Text(error!!, modifier = Modifier.padding(12.dp), fontSize = 13.sp) }
             }
 
@@ -194,8 +194,8 @@ private fun DarkField(
             unfocusedTextColor = TextPrimary,
             focusedBorderColor = Purple,
             unfocusedBorderColor = GlassBorder,
-            focusedContainerColor = Color(0x0FFFFFFF),
-            unfocusedContainerColor = Color(0x0AFFFFFF),
+            focusedContainerColor = GlassWhite2,
+            unfocusedContainerColor = GlassWhite2,
             cursorColor = Purple
         )
     )

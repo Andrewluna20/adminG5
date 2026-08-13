@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Colores del lado XML: solo los usan la pantalla de arranque (splash), la
+    barra de estado antes de que Compose pinte, y el icono de las
+    notificaciones. Los de la interfaz están en ui/theme/Color.kt.
+
+    Los nombres se mantienen (bg_deep, bg_mid) para no tocar themes.xml ni el
+    manifest, pero ahora son claros: "deep" significa "fondo de página".
+-->
 <resources>
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
-    <color name="bg_deep">#FF050810</color>
-    <color name="bg_mid">#FF0A1226</color>
-    <color name="blue_electric">#FF3B82F6</color>
-    <color name="cyan">#FF06B6D4</color>
-    <color name="primary">#FF3B82F6</color>
+
+    <!-- Fondo de página y superficies -->
+    <color name="bg_deep">#FFF4F6F9</color>
+    <color name="bg_mid">#FFFFFFFF</color>
+
+    <!-- Acentos -->
+    <color name="blue_electric">#FF2563EB</color>
+    <color name="cyan">#FF0891B2</color>
+
+    <!-- Color del icono de las notificaciones push -->
+    <color name="primary">#FF2563EB</color>
 </resources>

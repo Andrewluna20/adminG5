@@ -125,7 +125,7 @@ fun UsersScreen(
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.deleteUser(u.id); deleteConfirm = null
-                }) { Text("Eliminar", color = Color(0xFFF87171)) }
+                }) { Text("Eliminar", color = OrangeRed) }
             },
             dismissButton = {
                 TextButton(onClick = { deleteConfirm = null }) {
@@ -183,7 +183,7 @@ private fun UserCard(
             if (!isCurrentUser) {
                 IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
                     Icon(Icons.Default.Delete, "Eliminar",
-                        tint = Color(0xFFF87171))
+                        tint = OrangeRed)
                 }
             }
         }

@@ -461,7 +461,7 @@ fun AddFab(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription, tint = TextPrimary, modifier = Modifier.size(26.dp))
+        Icon(icon, contentDescription, tint = TextOnAccent, modifier = Modifier.size(26.dp))
     }
 }
 

@@ -3,9 +3,15 @@ package com.theextramile.admin.data.api
 import com.google.gson.Gson
 import com.theextramile.admin.BuildConfig
 import com.theextramile.admin.data.local.SessionManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -14,17 +20,27 @@ import java.util.concurrent.TimeUnit
 /**
  * Cliente HTTP de la app. Singleton.
  *
- * IMPORTANTE: debe inicializarse desde TEMApplication.onCreate() llamando
- * a ApiClient.init(sessionManager).
+ * IMPORTANTE: debe inicializarse desde TEMApplication.onCreate() llamando a
+ * ApiClient.init(sessionManager).
  *
- * El AuthInterceptor añade automáticamente el header
- * "Authorization: Bearer <token>" en cada petición si hay sesión activa.
+ * Hace dos cosas con la sesión:
+ *  1. Añade "Authorization: Bearer <token>" a cada petición.
+ *  2. Si el servidor responde 401, borra la sesión guardada.
  */
 object ApiClient {
     val gson: Gson = Gson()
 
     private var sessionManager: SessionManager? = null
     private var _service: TEMApiService? = null
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * Avisa de que el servidor rechazó el token. La interfaz lo escucha para
+     * explicarle al usuario por qué se le pide entrar otra vez.
+     */
+    private val _sessionExpired = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val sessionExpired: SharedFlow<Unit> = _sessionExpired.asSharedFlow()
 
     val service: TEMApiService
         get() = _service ?: throw IllegalStateException(
@@ -45,7 +61,28 @@ object ApiClient {
             } else {
                 original
             }
-            chain.proceed(request)
+
+            val response = chain.proceed(request)
+
+            /* ── Token rechazado ──
+               El backend invalida los tokens de un usuario cuando le cambian la
+               contraseña (revokeUserTokens dentro de applyNewPassword, en
+               usuarios.php), y también cuando caducan a los 30 días. En ambos
+               casos responde 401 y la sesión guardada ya no sirve: se borra, y
+               como la navegación observa currentUser, la app va sola al login y
+               pide la contraseña nueva.
+
+               Se excluye el propio login: ahí un 401 solo significa que la
+               contraseña escrita está mal, no que la sesión haya caducado. */
+            val esLogin = request.url.queryParameter("action") == "login"
+            if (response.code == 401 && token != null && !esLogin) {
+                scope.launch {
+                    this@ApiClient.sessionManager?.logout()
+                    _sessionExpired.tryEmit(Unit)
+                }
+            }
+
+            response
         }
 
         val loggingInterceptor = HttpLoggingInterceptor().apply {

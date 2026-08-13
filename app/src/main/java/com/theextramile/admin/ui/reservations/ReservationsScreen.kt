@@ -133,7 +133,7 @@ fun ReservationsScreen(
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0x33EF4444))
+                                    .background(StatusCancelledBg)
                                     .clickable { viewModel.deleteSelected() },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -141,7 +141,7 @@ fun ReservationsScreen(
                                     Icon(
                                         Icons.Default.Delete,
                                         "Eliminar",
-                                        tint = Color(0xFFF87171),
+                                        tint = OrangeRed,
                                         modifier = Modifier.size(20.dp)
                                     )
                                     Box(
@@ -296,8 +296,8 @@ private fun SearchBar(query: String, onChange: (String) -> Unit) {
         colors = OutlinedTextFieldDefaults.colors(
             focusedTextColor = TextPrimary,
             unfocusedTextColor = TextPrimary,
-            focusedContainerColor = Color(0x0FFFFFFF),
-            unfocusedContainerColor = Color(0x0AFFFFFF),
+            focusedContainerColor = GlassWhite2,
+            unfocusedContainerColor = GlassWhite2,
             focusedBorderColor = Purple,
             unfocusedBorderColor = GlassBorder,
             cursorColor = Purple
@@ -377,7 +377,7 @@ private fun FilterChip(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 label,
-                color = if (active) TextPrimary else TextSecondary,
+                color = if (active) TextOnAccent else TextSecondary,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -394,7 +394,7 @@ private fun FilterChip(
                 ) {
                     Text(
                         "$count",
-                        color = if (active) TextPrimary else TextSecondary,
+                        color = if (active) TextOnAccent else TextSecondary,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -422,7 +422,7 @@ private fun ReservationCard(
         shape = RoundedCornerShape(18.dp),
         onClick = onClick,
         contentPadding = 14.dp,
-        backgroundColor = if (isSelected) Color(0x33EF4444) else GlassWhite,
+        backgroundColor = if (isSelected) StatusCancelledBg else GlassWhite,
         borderColor = if (isSelected) OrangeRed.copy(alpha = 0.5f) else GlassBorder
     ) {
         Row {

@@ -126,7 +126,7 @@ fun LoginScreen(
                     .widthIn(max = 440.dp),
                 shape = RoundedCornerShape(24.dp),
                 contentPadding = 24.dp,
-                backgroundColor = Color(0x0FFFFFFF)
+                backgroundColor = GlassWhite
             ) {
                 Column {
                     Text("Iniciar sesión",
@@ -276,8 +276,8 @@ private fun GlassTextField(
             unfocusedTextColor = TextPrimary,
             focusedBorderColor = Purple,
             unfocusedBorderColor = GlassBorder,
-            focusedContainerColor = Color(0x0FFFFFFF),
-            unfocusedContainerColor = Color(0x0AFFFFFF),
+            focusedContainerColor = GlassWhite2,
+            unfocusedContainerColor = GlassWhite2,
             cursorColor = Purple,
             focusedLeadingIconColor = Purple,
             unfocusedLeadingIconColor = TextSecondary
@@ -301,8 +301,8 @@ private fun ErrorMessage(message: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = Color(0x33EF4444),
-        contentColor = Color(0xFFF87171)
+        color = StatusCancelledBg,
+        contentColor = OrangeRed
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),

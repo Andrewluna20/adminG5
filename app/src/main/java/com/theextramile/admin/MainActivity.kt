@@ -1,6 +1,7 @@
 package com.theextramile.admin
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -11,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -20,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.theextramile.admin.data.api.ApiClient
 import com.theextramile.admin.data.repository.ThemeRepository
 import com.theextramile.admin.ui.HomeScreen
 import com.theextramile.admin.ui.activity.ActivityScreen
@@ -101,10 +104,25 @@ fun AppNavigation(app: TEMApplication) {
 
     var initialChecked by remember { mutableStateOf(false) }
     var startDestination by remember { mutableStateOf(Routes.LOGIN) }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         startDestination = if (sessionManager.isLoggedIn()) Routes.HOME else Routes.LOGIN
         initialChecked = true
+    }
+
+    /* El servidor rechazó el token: casi siempre porque la contraseña se
+       cambió desde la web (el backend revoca los tokens del usuario) o porque
+       caducó a los 30 días. ApiClient ya borró la sesión; aquí solo se explica
+       por qué, para que no parezca que la app se cerró sola sin motivo. */
+    LaunchedEffect(Unit) {
+        ApiClient.sessionExpired.collect {
+            Toast.makeText(
+                context,
+                "Tu sesión ya no es válida. Vuelve a entrar con tu contraseña.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
     }
 
     if (!initialChecked) {

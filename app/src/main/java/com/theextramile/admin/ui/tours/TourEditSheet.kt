@@ -141,7 +141,8 @@ fun TourEditSheet(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator(color = OrangeWarm)
                             Spacer(Modifier.height(8.dp))
-                            Text("Subiendo…", color = TextPrimary, fontSize = 12.sp)
+                            // Va encima del velo negro de la imagen, no del fondo claro
+                            Text("Subiendo…", color = TextOnAccent, fontSize = 12.sp)
                         }
                     }
                 } else if (imageUrl.isBlank()) {
@@ -159,7 +160,7 @@ fun TourEditSheet(
                         modifier = Modifier.padding(10.dp).align(Alignment.BottomEnd),
                         shape = RoundedCornerShape(50),
                         color = Color.Black.copy(alpha = 0.7f),
-                        contentColor = TextPrimary
+                        contentColor = TextOnAccent
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -286,8 +287,8 @@ fun TourEditSheet(
                 Surface(
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0x33EF4444),
-                    contentColor = Color(0xFFF87171)
+                    color = StatusCancelledBg,
+                    contentColor = OrangeRed
                 ) { Text(error!!, modifier = Modifier.padding(12.dp), fontSize = 13.sp) }
             }
 
@@ -367,8 +368,8 @@ private fun DarkField(
                 disabledTextColor = TextSecondary,
                 focusedBorderColor = OrangeWarm,
                 unfocusedBorderColor = GlassBorder,
-                focusedContainerColor = Color(0x0FFFFFFF),
-                unfocusedContainerColor = Color(0x0AFFFFFF),
+                focusedContainerColor = GlassWhite2,
+                unfocusedContainerColor = GlassWhite2,
                 cursorColor = OrangeWarm
             )
         )
