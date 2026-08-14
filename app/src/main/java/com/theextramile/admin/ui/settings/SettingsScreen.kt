@@ -113,7 +113,7 @@ private fun SubSectionList(
                 onClick = { onOpen(s) }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    GradientIconBox(iconFor(s), Gradients.PurplePink, size = 38.dp, iconSize = 18.dp)
+                    SoftIconBox(iconFor(s), size = 38.dp, iconSize = 18.dp)
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
                         Text(s.title, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
@@ -143,6 +143,7 @@ private fun iconFor(s: SettingsViewModel.SubSection) = when (s) {
     SettingsViewModel.SubSection.RECAPTCHA -> Icons.Default.Security
     SettingsViewModel.SubSection.FAVICON -> Icons.Default.Bookmark
     SettingsViewModel.SubSection.POLICY -> Icons.Default.Gavel
+    SettingsViewModel.SubSection.INTEGRATIONS -> Icons.Default.Link
     SettingsViewModel.SubSection.BANKS -> Icons.Default.ViewList
 }
 
@@ -166,6 +167,7 @@ private fun SubSectionContent(
     SettingsViewModel.SubSection.RECAPTCHA -> RecaptchaSection(vm)
     SettingsViewModel.SubSection.FAVICON -> FaviconSection(vm, d, uiState, siteBaseUrl)
     SettingsViewModel.SubSection.POLICY -> PolicySection(vm, d)
+    SettingsViewModel.SubSection.INTEGRATIONS -> IntegrationsSection(vm, d)
     SettingsViewModel.SubSection.BANKS -> BanksSection(vm, d)
 }
 
@@ -510,6 +512,26 @@ private fun PolicySection(vm: SettingsViewModel, d: SiteSettings) {
         "Texto completo", d.ticketPolicyFull, { v -> vm.update { it.copy(ticketPolicyFull = v) } },
         hint = "La política entera, la que se enlaza desde el sitio",
         singleLine = false, minLines = 8
+    )
+}
+
+@Composable
+private fun IntegrationsSection(vm: SettingsViewModel, d: SiteSettings) {
+    Text(
+        "Llaves de servicios externos que usa el sitio público.",
+        color = TextDim, fontSize = 11.sp, modifier = Modifier.padding(top = 8.dp)
+    )
+    AdminField(
+        "Llave de Google Maps", d.mapsApiKey, { v -> vm.update { it.copy(mapsApiKey = v) } },
+        hint = "La usan los mapas incrustados de los planes y de los beneficios"
+    )
+
+    FormSectionTitle("Webhook antiguo del calendario")
+    AdminField(
+        "calendarWebhook", d.calendarWebhook,
+        { v -> vm.update { it.copy(calendarWebhook = v) } },
+        hint = "Campo heredado del panel viejo. El webhook que se usa hoy está en " +
+            "Google Calendar; este solo sigue aquí por las instalaciones antiguas."
     )
 }
 

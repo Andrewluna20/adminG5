@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.theextramile.admin.MainActivity
@@ -89,7 +90,9 @@ class AdminGFirebaseService : FirebaseMessagingService() {
             .setContentTitle(title)
             .setContentText(body)
             .setSmallIcon(R.drawable.ic_notification)
-            .setColor(0xFF3B82F6.toInt())
+            // Color de marca. Sale de res/values/colors.xml para no repetir
+            // el hex: es el color con el que Android tiñe el icono.
+            .setColor(ContextCompat.getColor(this, R.color.primary))
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))

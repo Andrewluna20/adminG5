@@ -1,6 +1,7 @@
 package com.theextramile.admin.data.repository
 
 import com.theextramile.admin.data.api.ApiClient
+import com.theextramile.admin.data.api.TourImage
 import com.theextramile.admin.data.api.ToursRequest
 import com.theextramile.admin.data.api.UploadResponse
 import com.theextramile.admin.data.model.Tour
@@ -71,6 +72,19 @@ class TourRepository {
                 _tours.value = list
                 Result.Success(Unit)
             } else Result.Error("Error ${response.code()}")
+        } catch (e: IOException) { Result.NoConnection }
+        catch (e: Exception) { Result.Error(e.message ?: "Error") }
+    }
+
+    /**
+     * Imágenes que ya están subidas al servidor, para poder reutilizarlas
+     * en otro plan sin volver a subirlas (y sin duplicar el archivo).
+     */
+    suspend fun listImages(): Result<List<TourImage>> {
+        return try {
+            val response = ApiClient.service.listTourImages()
+            if (response.isSuccessful) Result.Success(response.body() ?: emptyList())
+            else Result.Error("Error ${response.code()}")
         } catch (e: IOException) { Result.NoConnection }
         catch (e: Exception) { Result.Error(e.message ?: "Error") }
     }

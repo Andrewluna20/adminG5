@@ -28,6 +28,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.theextramile.admin.data.model.GoogleCalendarAccount
 import com.theextramile.admin.ui.components.*
 import com.theextramile.admin.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,6 +42,7 @@ fun GoogleCalendarScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     var deleteConfirm by remember { mutableStateOf<GoogleCalendarAccount?>(null) }
 
@@ -98,11 +100,18 @@ fun GoogleCalendarScreen(
                         text = if (accounts.isEmpty()) "CONECTAR GOOGLE CALENDAR"
                         else "+ AGREGAR OTRA CUENTA",
                         onClick = {
-                            try {
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(viewModel.authUrl))
-                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                context.startActivity(intent)
-                            } catch (e: Exception) {}
+                            // La URL se arma antes de abrirla porque lleva el
+                            // token de la sesión, y leerlo es una suspensión
+                            scope.launch {
+                                try {
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(viewModel.buildAuthUrl())
+                                    )
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {}
+                            }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         gradient = Gradients.GreenCyan,
@@ -166,7 +175,7 @@ fun GoogleCalendarScreen(
 private fun WarningCard() {
     GlassCard(
         modifier = Modifier.fillMaxWidth(),
-        backgroundColor = Color(0x33FBBF24),
+        backgroundColor = Yellow.copy(alpha = 0.12f),
         borderColor = Yellow.copy(alpha = 0.4f)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -210,7 +219,7 @@ private fun AccountCard(
 ) {
     GlassCard(
         modifier = Modifier.fillMaxWidth(),
-        backgroundColor = if (account.isActive) Color(0x3310B981) else GlassWhite,
+        backgroundColor = if (account.isActive) GreenNeon.copy(alpha = 0.12f) else GlassWhite,
         borderColor = if (account.isActive) GreenNeon.copy(alpha = 0.4f) else GlassBorder,
         contentPadding = 14.dp
     ) {

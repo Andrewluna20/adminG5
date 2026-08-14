@@ -98,7 +98,15 @@ object ApiClient {
             .addInterceptor(loggingInterceptor)
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            /*
+             * writeTimeout solo mide el envío del CUERPO de la petición. Para
+             * un JSON no llega ni a un segundo, así que subirlo no hace que
+             * nada falle más tarde; lo que permite es mandar un vídeo del
+             * plan por datos móviles sin que se corte a los 30 s.
+             * Conectar y leer siguen cortos: si el servidor no responde,
+             * se sabe enseguida.
+             */
+            .writeTimeout(5, TimeUnit.MINUTES)
             .build()
 
         _service = Retrofit.Builder()

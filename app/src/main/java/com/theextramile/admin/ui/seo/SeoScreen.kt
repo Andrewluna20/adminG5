@@ -251,7 +251,7 @@ fun SeoScreen(
                     AdminField(
                         "Dominio del sitio", draft.siteUrl,
                         { v -> viewModel.update { it.copy(siteUrl = v) } },
-                        placeholder = "kalaoz.com",
+                        placeholder = "theextramille.online",
                         hint = "Se usa para las URLs del sitemap y de los enlaces sociales"
                     )
 

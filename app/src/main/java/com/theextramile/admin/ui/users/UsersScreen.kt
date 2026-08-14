@@ -143,9 +143,11 @@ private fun UserCard(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
+    // El fondo es el mismo tono del texto, muy rebajado: la etiqueta se
+    // distingue sin meter un color ajeno a la paleta.
     val (roleColor, roleBg) = when (user.role) {
-        "super" -> Yellow to Color(0x33FBBF24)
-        "reservations" -> BlueElectric to Color(0x333B82F6)
+        "super" -> Yellow to Yellow.copy(alpha = 0.14f)
+        "reservations" -> BlueElectric to BlueElectric.copy(alpha = 0.14f)
         "viewer" -> TextSecondary to GlassWhite
         else -> TextSecondary to GlassWhite
     }

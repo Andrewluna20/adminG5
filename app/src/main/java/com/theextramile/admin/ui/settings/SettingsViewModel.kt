@@ -48,6 +48,7 @@ class SettingsViewModel(
         RECAPTCHA("reCAPTCHA", "Anti-spam del formulario"),
         FAVICON("Favicon", "Icono de la pestaña del navegador"),
         POLICY("Política del tiquete", "Texto de cancelaciones y reembolsos"),
+        INTEGRATIONS("Integraciones", "Llave de Google Maps y webhook antiguo"),
         BANKS("FAQ, info y etiquetas", "Bloques reutilizables que marca cada plan")
     }
 

@@ -102,7 +102,10 @@ data class Testimonial(
     @SerializedName("text") val text: String = "",
     /** Texto libre: "Hace un mes" */
     @SerializedName("date") val date: String = "",
-    @SerializedName("img") val img: String = ""
+    @SerializedName("img") val img: String = "",
+    /** La misma reseña en inglés (en/index.html). El panel web la guarda,
+     *  así que tiene que estar aquí o se borraría al editar desde la app. */
+    @SerializedName("textEn") val textEn: String = ""
 )
 
 /** Campos traducidos del plan */

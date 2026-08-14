@@ -1,6 +1,7 @@
 package com.theextramile.admin.ui.login
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -192,7 +193,39 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            /* El "olvidé mi contraseña" real va al HUB, no a la API del
+               sitio: manda una contraseña TEMPORAL al correo. Con ella se
+               entra y la app obliga a crear la definitiva. */
+            Text(
+                if (uiState.isRecovering) "Enviando solicitud…" else "¿Olvidaste tu contraseña?",
+                color = CyanLight,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier
+                    .clickable(enabled = !uiState.isRecovering) { viewModel.recoverPassword() }
+                    .padding(8.dp)
+            )
+
+            uiState.infoMessage?.let { aviso ->
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = StatusConfirmedBg,
+                    contentColor = StatusConfirmedText,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        aviso,
+                        fontSize = 12.sp,
+                        lineHeight = 17.sp,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 "The Extra Mile · Cartagena",
@@ -202,6 +235,130 @@ fun LoginScreen(
             )
         }
     }
+
+    if (uiState.mustChangePassword) {
+        ForcedPasswordDialog(
+            isSaving = uiState.isChangingPassword,
+            error = uiState.changeError,
+            onSubmit = viewModel::submitForcedPassword
+        )
+    }
+}
+
+/**
+ * Cambio OBLIGATORIO de contraseña.
+ *
+ * Sale cuando se entró con la contraseña temporal que manda el correo de
+ * "¿Olvidaste tu contraseña?". No se puede cerrar ni con Atrás: mientras
+ * la temporal siga puesta, cualquiera que tenga ese correo puede entrar,
+ * así que dejar seguir sin cambiarla es dejar la cuenta abierta. Es el
+ * mismo comportamiento que la vista v-force-pass del panel.
+ */
+@Composable
+private fun ForcedPasswordDialog(
+    isSaving: Boolean,
+    error: String?,
+    onSubmit: (String, String) -> Unit
+) {
+    var nueva by remember { mutableStateOf("") }
+    var confirmar by remember { mutableStateOf("") }
+    var visible by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        // Sin onDismissRequest util: no hay forma de salir sin cambiarla
+        onDismissRequest = { },
+        containerColor = BgLight,
+        titleContentColor = TextPrimary,
+        title = { Text("Crea tu contraseña", fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                Text(
+                    "Entraste con la contraseña temporal que te llegó por correo. " +
+                        "Crea una tuya para poder seguir.",
+                    color = TextSecondary, fontSize = 13.sp, lineHeight = 18.sp
+                )
+                Spacer(Modifier.height(14.dp))
+                OutlinedTextField(
+                    value = nueva,
+                    onValueChange = { nueva = it },
+                    label = { Text("Contraseña nueva", color = TextMuted) },
+                    singleLine = true,
+                    enabled = !isSaving,
+                    visualTransformation = if (visible) VisualTransformation.None
+                        else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        IconButton(onClick = { visible = !visible }) {
+                            Icon(
+                                if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                if (visible) "Ocultar" else "Ver",
+                                tint = TextSecondary
+                            )
+                        }
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = Purple,
+                        unfocusedBorderColor = GlassBorder,
+                        focusedContainerColor = GlassWhite2,
+                        unfocusedContainerColor = GlassWhite2,
+                        cursorColor = Purple
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(10.dp))
+                OutlinedTextField(
+                    value = confirmar,
+                    onValueChange = { confirmar = it },
+                    label = { Text("Repítela", color = TextMuted) },
+                    singleLine = true,
+                    enabled = !isSaving,
+                    visualTransformation = if (visible) VisualTransformation.None
+                        else PasswordVisualTransformation(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary,
+                        focusedBorderColor = Purple,
+                        unfocusedBorderColor = GlassBorder,
+                        focusedContainerColor = GlassWhite2,
+                        unfocusedContainerColor = GlassWhite2,
+                        cursorColor = Purple
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    "Al menos 8 caracteres, con una mayúscula, una minúscula y un símbolo.",
+                    color = TextDim, fontSize = 11.sp, lineHeight = 15.sp
+                )
+                if (!error.isNullOrBlank()) {
+                    Spacer(Modifier.height(10.dp))
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = StatusCancelledBg,
+                        contentColor = OrangeRed
+                    ) {
+                        Text(error, modifier = Modifier.padding(10.dp), fontSize = 12.sp,
+                            lineHeight = 16.sp)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSubmit(nueva, confirmar) },
+                enabled = !isSaving && nueva.isNotBlank() && confirmar.isNotBlank()
+            ) {
+                Text(
+                    if (isSaving) "Guardando…" else "Guardar y entrar",
+                    color = if (isSaving) TextDim else Purple,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    )
 }
 
 @Composable

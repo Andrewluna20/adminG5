@@ -35,6 +35,8 @@ fun ReservationDetailSheet(
     onCall: () -> Unit,
     onSendInvoice: () -> Unit = {},
     onPreviewInvoice: () -> Unit = {},
+    onEditPayment: () -> Unit = {},
+    onChangeDate: () -> Unit = {},
     hasAdminWhatsApp: Boolean = false
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -139,7 +141,7 @@ fun ReservationDetailSheet(
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    color = Color(0x33FBBF24),
+                    color = Yellow.copy(alpha = 0.12f),
                     contentColor = Yellow
                 ) {
                     Row(
@@ -193,6 +195,25 @@ fun ReservationDetailSheet(
                 modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
             )
 
+            /* Acciones que en el panel viven en el menú "Más" y están
+               siempre disponibles, sin importar el estado. */
+            if (!isUpdating && !reservation.isCancelled) {
+                OutlinedActionButton(
+                    text = "Ver o editar el pago",
+                    onClick = onEditPayment,
+                    icon = Icons.Default.Payments,
+                    tint = GreenLight
+                )
+                Spacer(Modifier.height(10.dp))
+                OutlinedActionButton(
+                    text = "Cambiar fecha",
+                    onClick = onChangeDate,
+                    icon = Icons.Default.EditCalendar,
+                    tint = BlueElectric
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+
             when {
                 isUpdating -> {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -221,9 +242,10 @@ fun ReservationDetailSheet(
                         text = "ENVIAR FACTURA POR WHATSAPP",
                         onClick = onSendInvoice,
                         modifier = Modifier.fillMaxWidth(),
-                        gradient = Brush.linearGradient(
-                            listOf(Color(0xFF8B5CF6), Color(0xFF6366F1))
-                        ),
+                        // Dorado: la factura es la acción que más destaca de
+                        // la reserva, y el dorado es el acento reservado
+                        // justo para eso (ver ui/theme/Color.kt).
+                        gradient = Gradients.PinkOrange,
                         icon = Icons.Default.Receipt,
                         height = 50.dp,
                         shape = RoundedCornerShape(14.dp)

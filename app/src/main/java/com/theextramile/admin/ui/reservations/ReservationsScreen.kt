@@ -45,7 +45,10 @@ fun ReservationsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val reservations by viewModel.filteredReservations.collectAsState()
+    val grupos by viewModel.groupedReservations.collectAsState()
     val counts by viewModel.statusCounts.collectAsState()
+    val sellers by viewModel.sellers.collectAsState()
+    val tours by viewModel.tours.collectAsState()
     val context = LocalContext.current
 
     // ★ Acceso al SettingsRepository (para enviar facturas con datos de empresa)
@@ -54,6 +57,10 @@ fun ReservationsScreen(
     val invoiceRepo = remember { InvoiceRepository() }
 
     var selectedReservation by remember { mutableStateOf<Reservation?>(null) }
+    // Reserva sobre la que se está editando el pago o moviendo la fecha
+    var payingReservation by remember { mutableStateOf<Reservation?>(null) }
+    var datingReservation by remember { mutableStateOf<Reservation?>(null) }
+    var creandoReserva by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     val pullRefreshState = rememberPullRefreshState(
@@ -82,7 +89,7 @@ fun ReservationsScreen(
                 .offset((-80).dp, (-60).dp)
                 .clip(CircleShape)
                 .background(
-                    Brush.radialGradient(listOf(Purple.copy(alpha = 0.2f), Color.Transparent))
+                    Brush.radialGradient(listOf(Color.Transparent, Color.Transparent))
                 )
                 .blur(60.dp)
         )
@@ -181,8 +188,40 @@ fun ReservationsScreen(
                         onChange = viewModel::setFilter
                     )
 
+                    // Vendedor: solo aparece si hay vendedores creados
+                    if (sellers.isNotEmpty()) {
+                        Box(Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) {
+                            AdminDropdown(
+                                "Vendedor",
+                                listOf("" to "Todos los vendedores") + sellers.map { it.id to it.name },
+                                uiState.sellerFilter,
+                                viewModel::setSellerFilter
+                            )
+                        }
+                    }
+
+                    // Aviso de que se está viendo un solo carrito
+                    if (uiState.tripFilter.isNotBlank()) {
+                        Box(Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) {
+                            RemovablePill(
+                                "Planes reservados juntos · ${reservations.size}",
+                                { viewModel.setTripFilter("") }
+                            )
+                        }
+                    }
+
                     Spacer(Modifier.height(12.dp))
                 }
+            },
+            floatingActionButton = {
+                // Registrar una reserva que entró por fuera de la web
+                ExtendedFloatingActionButton(
+                    onClick = { creandoReserva = true },
+                    containerColor = Purple,
+                    contentColor = TextOnAccent,
+                    icon = { Icon(Icons.Default.Add, null) },
+                    text = { Text("Nueva reserva", fontWeight = FontWeight.SemiBold) }
+                )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { padding ->
@@ -200,21 +239,36 @@ fun ReservationsScreen(
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        items(reservations, key = { it.id }) { res ->
-                            ReservationCard(
-                                reservation = res,
-                                isSelected = res.id in uiState.selectedIds,
-                                isUpdating = res.id in uiState.updatingIds,
-                                onClick = {
-                                    if (uiState.selectedIds.isNotEmpty() && res.isCancelled) {
-                                        viewModel.toggleSelection(res.id)
-                                    } else {
-                                        selectedReservation = res
-                                    }
+                        // Los planes que un cliente reservó de una vez van
+                        // juntos y con su encabezado; el resto, sueltos.
+                        grupos.forEach { grupo ->
+                            if (grupo.esCarrito) {
+                                item(key = "carrito-${grupo.groupId}") {
+                                    CarritoHeader(
+                                        cliente = grupo.items.first().name,
+                                        planes = grupo.items.size,
+                                        filtrando = uiState.tripFilter.isNotBlank(),
+                                        onSoloEste = { viewModel.setTripFilter(grupo.groupId) }
+                                    )
                                 }
-                            )
+                            }
+                            items(grupo.items, key = { it.id }) { res ->
+                                ReservationCard(
+                                    reservation = res,
+                                    isSelected = res.id in uiState.selectedIds,
+                                    isUpdating = res.id in uiState.updatingIds,
+                                    onClick = {
+                                        if (uiState.selectedIds.isNotEmpty() && res.isCancelled) {
+                                            viewModel.toggleSelection(res.id)
+                                        } else {
+                                            selectedReservation = res
+                                        }
+                                    }
+                                )
+                            }
                         }
-                        item { Spacer(Modifier.height(40.dp)) }
+                        // Hueco para que el botón flotante no tape la última
+                        item { Spacer(Modifier.height(80.dp)) }
                     }
                 }
 
@@ -234,6 +288,14 @@ fun ReservationsScreen(
             reservation = res,
             isUpdating = res.id in uiState.updatingIds,
             onDismiss = { selectedReservation = null },
+            onEditPayment = {
+                payingReservation = res
+                selectedReservation = null
+            },
+            onChangeDate = {
+                datingReservation = res
+                selectedReservation = null
+            },
             onConfirm = {
                 viewModel.confirmReservation(res.id)
                 selectedReservation = null
@@ -265,6 +327,79 @@ fun ReservationsScreen(
             },
             hasAdminWhatsApp = adminWhatsApp.isNotBlank()
         )
+    }
+
+    payingReservation?.let { res ->
+        PaymentSheet(
+            reservation = res,
+            isSaving = uiState.updatingIds.contains(res.id),
+            onSave = { mode, total, monto ->
+                viewModel.savePayment(res.id, mode, total, monto)
+                payingReservation = null
+            },
+            onDismiss = { payingReservation = null }
+        )
+    }
+
+    datingReservation?.let { res ->
+        ChangeDateDialog(
+            reservation = res,
+            // Los horarios son del plan de esta reserva, no de todos
+            horarios = tours.firstOrNull { it.id == res.tourId }?.horarios ?: emptyList(),
+            isSaving = uiState.updatingIds.contains(res.id),
+            onConfirm = { nueva, horaInicio, horaFin ->
+                viewModel.changeDate(res, nueva, horaInicio, horaFin)
+                datingReservation = null
+            },
+            onDismiss = { datingReservation = null }
+        )
+    }
+
+    if (creandoReserva) {
+        NewReservationSheet(
+            viewModel = viewModel,
+            onDismiss = { creandoReserva = false }
+        )
+    }
+}
+
+/**
+ * Encabezado de un carrito: varios planes que el mismo cliente reservó en
+ * un solo envío. Se le pone nombre porque, si no, en la lista parecen
+ * reservas distintas de la misma persona por casualidad.
+ */
+@Composable
+private fun CarritoHeader(
+    cliente: String,
+    planes: Int,
+    filtrando: Boolean,
+    onSoloEste: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 6.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Purple.copy(alpha = 0.08f))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Default.ShoppingBag, null, tint = Purple, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(10.dp))
+        Column(Modifier.weight(1f)) {
+            Text("Reservados juntos", color = Purple, fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold)
+            Text("$cliente · $planes planes", color = TextSecondary, fontSize = 11.sp)
+        }
+        if (!filtrando) {
+            Text(
+                "Ver solo estos",
+                color = Purple,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.clickable(onClick = onSoloEste)
+            )
+        }
     }
 }
 
@@ -555,4 +690,5 @@ private fun EmptyState(filter: ReservationFilter) {
             modifier = Modifier.padding(top = 6.dp)
         )
     }
+
 }

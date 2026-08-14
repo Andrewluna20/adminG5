@@ -1,10 +1,12 @@
 package com.theextramile.admin.data.repository
 
 import com.theextramile.admin.data.api.ApiClient
+import com.theextramile.admin.data.api.ChangeOwnPasswordRequest
 import com.theextramile.admin.data.api.ErrorResponse
 import com.theextramile.admin.data.api.LoginRequest
 import com.theextramile.admin.data.local.SessionManager
 import com.theextramile.admin.data.model.User
+import kotlinx.coroutines.flow.first
 import java.io.IOException
 
 /**
@@ -17,7 +19,11 @@ import java.io.IOException
 class AuthRepository(private val sessionManager: SessionManager) {
 
     sealed class LoginResult {
-        data class Success(val user: User) : LoginResult()
+        data class Success(
+            val user: User,
+            /** Entró con la contraseña temporal: no puede usar el panel hasta cambiarla */
+            val mustChangePassword: Boolean = false
+        ) : LoginResult()
         object InvalidCredentials : LoginResult()
         object NoConnection : LoginResult()
         data class Error(val message: String) : LoginResult()
@@ -31,8 +37,14 @@ class AuthRepository(private val sessionManager: SessionManager) {
             when {
                 response.isSuccessful && response.body() != null -> {
                     val body = response.body()!!
+                    // La sesión se guarda igual aunque toque cambiar la
+                    // contraseña: change_own_password EXIGE estar dentro.
                     sessionManager.saveSession(body.user, body.token)
-                    LoginResult.Success(body.user)
+                    LoginResult.Success(
+                        user = body.user,
+                        // Según el caso el servidor manda uno u otro
+                        mustChangePassword = body.mustChangePassword || body.user.tempPassword
+                    )
                 }
                 response.code() == 401 -> LoginResult.InvalidCredentials
                 else -> {
@@ -48,6 +60,32 @@ class AuthRepository(private val sessionManager: SessionManager) {
         } catch (e: Exception) {
             LoginResult.Error(e.message ?: "Error desconocido")
         }
+    }
+
+    /**
+     * El usuario guardado si todavía arrastra la contraseña temporal.
+     *
+     * Sirve para que, al reabrir la app, el login vuelva a poner delante el
+     * cambio obligatorio en vez de dejar pasar.
+     */
+    suspend fun pendingPasswordChange(): User? =
+        sessionManager.currentUser.first()?.takeIf { it.tempPassword }
+
+    /**
+     * Cambia la contraseña del usuario que está dentro.
+     *
+     * Exige sesión (por eso el login la guarda antes de saber si toca
+     * cambiarla). Al terminar bien, el usuario deja de tener contraseña
+     * temporal, así que se refresca el dato guardado.
+     */
+    suspend fun changeOwnPassword(newPassword: String): ApiResult<Unit> {
+        val r = apiAction {
+            ApiClient.service.changeOwnPassword(
+                request = ChangeOwnPasswordRequest(newPassword)
+            )
+        }
+        if (r is ApiResult.Success) verifySession()
+        return r
     }
 
     suspend fun logout() {

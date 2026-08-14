@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.theextramile.admin.ui.theme.*
@@ -120,7 +121,7 @@ fun FilterChipRow(
             val count = counts[key]
             Surface(
                 shape = RoundedCornerShape(50),
-                color = if (active) Purple.copy(alpha = 0.25f) else GlassWhite,
+                color = if (active) Purple.copy(alpha = 0.10f) else GlassWhite,
                 border = androidx.compose.foundation.BorderStroke(
                     1.dp, if (active) Purple else GlassBorder
                 ),
@@ -129,7 +130,7 @@ fun FilterChipRow(
                 Text(
                     text = if (count != null) "$label ($count)" else label,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                    color = if (active) TextPrimary else TextSecondary,
+                    color = if (active) Purple else TextSecondary,
                     fontSize = 12.sp,
                     fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
                 )
@@ -194,14 +195,19 @@ fun AdminField(
     trailingIcon: @Composable (() -> Unit)? = null
 ) {
     Column(modifier.fillMaxWidth().padding(vertical = 6.dp)) {
-        Text(
-            label.uppercase(),
-            color = TextMuted,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 0.6.sp
-        )
-        Spacer(Modifier.height(6.dp))
+        // Con label vacío se omite el hueco: hay campos que van dentro de una
+        // fila ya rotulada (una reseña, un ítem de "Incluye") y ahí el título
+        // sobra.
+        if (label.isNotBlank()) {
+            Text(
+                label.uppercase(),
+                color = TextMuted,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.6.sp
+            )
+            Spacer(Modifier.height(6.dp))
+        }
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
@@ -421,6 +427,33 @@ fun adminFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
     disabledBorderColor = GlassBorder,
     errorBorderColor = OrangeRed
 )
+
+/**
+ * Cuadro de icono suave: fondo teñido al 8% y el icono en color.
+ *
+ * Es la pieza que da el aire minimalista a las listas largas (el menú
+ * y Ajustes). Un cuadro sólido por fila llena la pantalla de manchas
+ * de color; teñido, el color acompaña en vez de gritar.
+ */
+@Composable
+fun SoftIconBox(
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+    tint: Color = Purple,
+    size: Dp = 40.dp,
+    iconSize: Dp = 19.dp,
+    cornerRadius: Dp = 12.dp
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(cornerRadius))
+            .background(tint.copy(alpha = 0.08f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(icon, null, tint = tint, modifier = Modifier.size(iconSize))
+    }
+}
 
 /** Pastilla pequeña de color plano, para etiquetas y estados */
 @Composable

@@ -117,22 +117,24 @@ class CalendarViewModel(private val repository: ReservationRepository) : ViewMod
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSaving = true, error = null)
 
-            // Se conserva la hora original; solo cambia el día
-            val time = try {
-                java.time.Instant.parse(reservation.dateRaw)
-                    .atZone(ZoneId.systemDefault()).toLocalTime()
-            } catch (e: Exception) {
-                java.time.LocalTime.of(12, 0)
-            }
-            val iso = newDate.atTime(time).atZone(ZoneId.systemDefault())
-                .toInstant().toString()
+            /*
+             * Arrastrar en el calendario cambia el DÍA y nada más: el horario
+             * de la reserva se reenvía tal cual. Si no se mandara, el servidor
+             * lo entendería como "sin horario" y recrearía el evento de Google
+             * Calendar sin hora. Elegir otro horario se hace desde Reservas.
+             */
+            val hi = reservation.horaInicio.orEmpty()
+            val hf = reservation.horaFin.orEmpty()
 
             val result = apiAction {
                 ApiClient.service.updateReservationDate(
                     request = UpdateDateRequest(
                         id = reservation.id,
-                        date = formatSpanishDate(newDate),
-                        dateRaw = iso
+                        date = com.theextramile.admin.util.formatFechaConHora(newDate, hi),
+                        // Mediodía local; la hora real va en horaInicio/horaFin
+                        dateRaw = com.theextramile.admin.util.isoMediodia(newDate),
+                        horaInicio = hi,
+                        horaFin = hf
                     )
                 )
             }
@@ -171,9 +173,15 @@ class CalendarViewModel(private val repository: ReservationRepository) : ViewMod
     }
 }
 
-/** "12 de agosto de 2026" — el formato que usa el sitio público */
+/**
+ * "12 de Agosto de 2026" — el formato que usa el sitio público.
+ *
+ * Delega en util/Fechas.kt para que la app y el panel web escriban la
+ * fecha de una reserva exactamente igual; antes salía con el mes en
+ * minúscula y no coincidía.
+ */
 fun formatSpanishDate(date: LocalDate): String =
-    date.format(DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", Locale("es", "CO")))
+    com.theextramile.admin.util.formatFechaEspanol(date)
 
 /** "Agosto 2026" para la cabecera del calendario */
 fun formatMonthTitle(ym: YearMonth): String =

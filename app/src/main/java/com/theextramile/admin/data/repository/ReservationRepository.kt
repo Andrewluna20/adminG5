@@ -57,6 +57,34 @@ class ReservationRepository {
         return saveAll(updated)
     }
 
+    /**
+     * Registra el pago de una reserva — espejo de submitPayment() en
+     * admin-js/reservations.js.
+     *
+     * ⚠️ Guardar el pago TAMBIÉN pasa la reserva a "confirmed". No es un
+     * efecto secundario: es lo que hace el panel web, y es lo que dispara
+     * en el servidor el correo de confirmación con el tiquete. Si aquí se
+     * dejara en "pending", el cliente nunca recibiría ese correo.
+     */
+    suspend fun updatePayment(
+        id: String,
+        total: Int,
+        deposit: Int,
+        balance: Int,
+        paymentStatus: String
+    ): Result<Unit> {
+        val updated = _reservations.value.map {
+            if (it.id == id) it.copy(
+                total = total,
+                deposit = deposit,
+                balance = balance,
+                paymentStatus = paymentStatus,
+                status = "confirmed"
+            ) else it
+        }
+        return saveAll(updated)
+    }
+
     /** Guarda toda la lista al servidor */
     private suspend fun saveAll(list: List<Reservation>): Result<Unit> {
         return try {

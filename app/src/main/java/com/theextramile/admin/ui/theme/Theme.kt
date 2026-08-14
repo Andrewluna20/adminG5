@@ -4,60 +4,29 @@ import android.app.Activity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.theextramile.admin.data.model.RemoteTheme
 
 /**
- * CompositionLocal con el tema remoto, por si alguna pantalla necesita
- * leer algo más que los colores (nombre de la app, logo…).
- */
-val LocalRemoteTheme = staticCompositionLocalOf { RemoteTheme() }
-
-/**
- * Parsea un color hex (#RRGGBB) a Color de Compose.
- * Si el hex viene mal, se queda con el de reserva.
- */
-fun parseHexColor(hex: String, fallback: Color = Color(0xFF2563EB)): Color {
-    return try {
-        Color(android.graphics.Color.parseColor(hex))
-    } catch (e: Exception) {
-        fallback
-    }
-}
-
-/**
- * Tema de Admin G — CLARO.
+ * Tema de Admin K — CLARO y FIJO.
  *
- * Los fondos, los textos y los bordes son fijos (ver Color.kt). Del tema
- * remoto del HUB solo se toman los acentos de marca: así la app no se
- * vuelve oscura sola si el JSON del HUB todavía trae la paleta antigua.
+ * Toda la paleta está en Color.kt y se compila dentro de la app: no se
+ * descarga nada, así que abrir la app sin datos se ve igual que con
+ * ellos y una actualización del servidor no puede cambiarle los colores.
+ *
+ * ⚠️ Antes esto leía un "tema remoto" de gpanelcol.online (el HUB):
+ * un mobile_theme.json que repintaba la app entera. Se quitó porque ese
+ * archivo es UNO SOLO para todas las apps del sistema y manda el morado
+ * #902fa8, que no es la marca de este sitio. Si algún día se quisiera
+ * volver a mandar el color desde el servidor, ese JSON tendría que
+ * servir un tono por app, no uno para todas.
  */
 @Composable
-fun TEMAdminTheme(
-    remoteTheme: RemoteTheme? = null,
-    content: @Composable () -> Unit
-) {
+fun TEMAdminTheme(content: @Composable () -> Unit) {
     val view = LocalView.current
-    val effectiveTheme = remoteTheme ?: RemoteTheme()
-
-    // Solo los acentos; los fondos del RemoteTheme se ignoran a propósito
-    applyDynamicColors(
-        primary = parseHexColor(effectiveTheme.primary, Color(0xFF2563EB)),
-        primaryDark = parseHexColor(effectiveTheme.primaryDark, Color(0xFF1D4ED8)),
-        primaryLight = parseHexColor(effectiveTheme.primaryLight, Color(0xFF3B82F6)),
-        secondary = parseHexColor(effectiveTheme.secondary, Color(0xFF0891B2)),
-        secondaryDark = parseHexColor(effectiveTheme.secondaryDark, Color(0xFF0E7490)),
-        accent = parseHexColor(effectiveTheme.accent, Color(0xFF0E7490)),
-        success = parseHexColor(effectiveTheme.success, Color(0xFF047857)),
-        warning = parseHexColor(effectiveTheme.warning, Color(0xFFB45309)),
-        danger = parseHexColor(effectiveTheme.danger, Color(0xFFDC2626))
-    )
 
     val colorScheme = lightColorScheme(
         primary = Purple,
@@ -74,8 +43,8 @@ fun TEMAdminTheme(
 
         error = OrangeRed,
         onError = TextOnAccent,
-        errorContainer = Color(0x1FDC2626),
-        onErrorContainer = Color(0xFFB91C1C),
+        errorContainer = Color(0x14C0402C),
+        onErrorContainer = Color(0xFFC0402C),
 
         background = BgDeep,
         onBackground = TextPrimary,
@@ -99,11 +68,9 @@ fun TEMAdminTheme(
         }
     }
 
-    CompositionLocalProvider(LocalRemoteTheme provides effectiveTheme) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = TEMTypography,
-            content = content
-        )
-    }
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = TEMTypography,
+        content = content
+    )
 }

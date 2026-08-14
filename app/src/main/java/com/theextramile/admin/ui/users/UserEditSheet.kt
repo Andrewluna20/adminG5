@@ -210,7 +210,7 @@ private fun RoleOption(
         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(14.dp),
-        color = if (selected) Color(0x33A855F7) else GlassWhite,
+        color = if (selected) Purple.copy(alpha = 0.10f) else GlassWhite,
         border = androidx.compose.foundation.BorderStroke(
             1.5.dp, if (selected) Purple else GlassBorder
         )

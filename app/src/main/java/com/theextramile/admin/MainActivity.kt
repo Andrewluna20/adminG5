@@ -17,13 +17,11 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.theextramile.admin.data.api.ApiClient
-import com.theextramile.admin.data.repository.ThemeRepository
 import com.theextramile.admin.ui.HomeScreen
 import com.theextramile.admin.ui.activity.ActivityScreen
 import com.theextramile.admin.ui.activity.ActivityViewModel
@@ -49,38 +47,39 @@ import com.theextramile.admin.ui.seo.SeoScreen
 import com.theextramile.admin.ui.seo.SeoViewModel
 import com.theextramile.admin.ui.settings.SettingsScreen
 import com.theextramile.admin.ui.settings.SettingsViewModel
+import com.theextramile.admin.ui.theme.BgDeep
+import com.theextramile.admin.ui.theme.Pink
+import com.theextramile.admin.ui.theme.Purple
 import com.theextramile.admin.ui.theme.TEMAdminTheme
+import com.theextramile.admin.ui.theme.TextPrimary
 import com.theextramile.admin.ui.tours.ToursScreen
 import com.theextramile.admin.ui.tours.ToursViewModel
 import com.theextramile.admin.ui.users.UsersScreen
 import com.theextramile.admin.ui.users.UsersViewModel
 import com.theextramile.admin.util.Roles
 import com.theextramile.admin.util.Section
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * Punto de entrada de Admin G.
+ * Punto de entrada de Admin K.
  *
- * 1) Carga el tema remoto desde el HUB
- * 2) Sin sesión → LoginScreen
- * 3) Con sesión → HomeScreen con las 13 secciones del panel web, filtradas
+ * 1) Sin sesión → LoginScreen
+ * 2) Con sesión → HomeScreen con las 13 secciones del panel web, filtradas
  *    por el rol del usuario (ver util/Permissions.kt)
+ *
+ * El tema es fijo y va compilado (ui/theme/Color.kt): la app no pide
+ * colores a ningún servidor al arrancar.
  */
 class MainActivity : ComponentActivity() {
-
-    private lateinit var themeRepo: ThemeRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        themeRepo = ThemeRepository(this)
-        lifecycleScope.launch { themeRepo.loadTheme() }
-
         val app = application as TEMApplication
 
         setContent {
-            val remoteTheme by themeRepo.theme.collectAsState()
-            TEMAdminTheme(remoteTheme = remoteTheme) {
+            TEMAdminTheme {
                 AppNavigation(app)
             }
         }
@@ -107,7 +106,16 @@ fun AppNavigation(app: TEMApplication) {
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        startDestination = if (sessionManager.isLoggedIn()) Routes.HOME else Routes.LOGIN
+        /*
+         * Con la contraseña temporal todavía puesta la sesión existe, pero no
+         * vale para entrar: se manda al login, que pone delante el cambio
+         * obligatorio. Si no se comprobara aquí, cerrar la app y volver a
+         * abrirla sería suficiente para saltárselo, y la cuenta se quedaría
+         * abierta a quien tenga ese correo.
+         */
+        val conTemporal = sessionManager.currentUser.first()?.tempPassword == true
+        startDestination =
+            if (sessionManager.isLoggedIn() && !conTemporal) Routes.HOME else Routes.LOGIN
         initialChecked = true
     }
 
@@ -207,7 +215,15 @@ fun AppNavigation(app: TEMApplication) {
                 }
             ) {
                 val vm: ReservationsViewModel = viewModel(
-                    factory = SimpleViewModelFactory { ReservationsViewModel(app.reservationRepository) }
+                    factory = SimpleViewModelFactory {
+                        // Los planes dan el selector y los horarios de "nueva
+                        // reserva"; planConfig da vendedores y descuentos
+                        ReservationsViewModel(
+                            app.reservationRepository,
+                            app.tourRepository,
+                            app.planConfigRepository
+                        )
+                    }
                 )
                 ReservationsScreen(viewModel = vm, onBack = back)
             }
@@ -247,9 +263,23 @@ fun AppNavigation(app: TEMApplication) {
                 }
             ) {
                 val vm: ToursViewModel = viewModel(
-                    factory = SimpleViewModelFactory { ToursViewModel(app.tourRepository) }
+                    factory = SimpleViewModelFactory {
+                        // El editor de un plan necesita, además de los planes,
+                        // los bancos de Ajustes, los muelles y los calendarios
+                        ToursViewModel(
+                            app.tourRepository,
+                            app.settingsRepository,
+                            app.planConfigRepository,
+                            app.gcalRepository
+                        )
+                    }
                 )
-                ToursScreen(viewModel = vm, onBack = back)
+                ToursScreen(
+                    viewModel = vm,
+                    siteBaseUrl = siteBaseUrl,
+                    canEditNet = Roles.canEditNet(role),
+                    onBack = back
+                )
             }
         }
 
@@ -423,7 +453,11 @@ fun AppNavigation(app: TEMApplication) {
                 }
             ) {
                 val vm: GoogleCalendarViewModel = viewModel(
-                    factory = SimpleViewModelFactory { GoogleCalendarViewModel(app.gcalRepository) }
+                    factory = SimpleViewModelFactory {
+                        // El sessionManager es para meter el token en la URL
+                        // del OAuth: la abre el navegador, que no manda cabeceras
+                        GoogleCalendarViewModel(app.gcalRepository, app.sessionManager)
+                    }
                 )
                 GoogleCalendarScreen(viewModel = vm, onBack = back)
             }
@@ -463,24 +497,20 @@ fun LoadingScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF050810), Color(0xFF0A1738), Color(0xFF050810))
-                )
-            ),
+            .background(BgDeep),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("The Extra ", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Light)
+            Text("THE EXTRA MILE", color = Pink, fontSize = 13.sp, fontWeight = FontWeight.Bold, letterSpacing = 3.sp)
+            Spacer(Modifier.height(6.dp))
             Text(
-                "Mile",
-                color = Color(0xFFC9A84C),
-                fontSize = 36.sp,
-                fontStyle = FontStyle.Italic,
-                fontWeight = FontWeight.Light
+                "Admin",
+                color = TextPrimary,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(24.dp))
-            CircularProgressIndicator(color = Color(0xFFC9A84C))
+            CircularProgressIndicator(color = Purple, strokeWidth = 2.5.dp)
         }
     }
 }

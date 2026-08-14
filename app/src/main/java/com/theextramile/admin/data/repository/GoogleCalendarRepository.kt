@@ -2,6 +2,7 @@ package com.theextramile.admin.data.repository
 
 import com.theextramile.admin.data.api.ApiClient
 import com.theextramile.admin.data.api.GcalEmailRequest
+import com.theextramile.admin.data.model.GcalAccountCalendars
 import com.theextramile.admin.data.model.GcalConfigStatus
 import com.theextramile.admin.data.model.GoogleCalendarAccount
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,6 +47,23 @@ class GoogleCalendarRepository {
                 _accounts.value = body?.accounts ?: emptyList()
                 _activeEmail.value = body?.activeEmail
                 Result.Success(_accounts.value)
+            } else Result.Error("Error ${response.code()}")
+        } catch (e: IOException) { Result.NoConnection }
+        catch (e: Exception) { Result.Error(e.message ?: "Error") }
+    }
+
+    /**
+     * Calendarios de todas las cuentas, para el selector del editor de planes.
+     *
+     * Cada llamada consulta a Google una vez por cuenta vinculada, así que
+     * conviene pedirlo una sola vez y quedarse con el resultado en memoria
+     * (es lo que hace ToursViewModel).
+     */
+    suspend fun listCalendars(): Result<List<GcalAccountCalendars>> {
+        return try {
+            val response = ApiClient.service.gcalListCalendars()
+            if (response.isSuccessful) {
+                Result.Success(response.body()?.accounts ?: emptyList())
             } else Result.Error("Error ${response.code()}")
         } catch (e: IOException) { Result.NoConnection }
         catch (e: Exception) { Result.Error(e.message ?: "Error") }

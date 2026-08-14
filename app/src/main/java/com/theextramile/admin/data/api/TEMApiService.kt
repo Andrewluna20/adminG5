@@ -11,6 +11,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Query
+import retrofit2.http.Url
 
 /**
  * Todas las acciones del panel web, una por una.
@@ -52,14 +53,35 @@ interface TEMApiService {
         @Body request: ChangeOwnPasswordRequest
     ): Response<SuccessResponse>
 
-    /** Paso 1 de "olvidé mi contraseña": manda un código al correo */
-    @POST("usuarios.php")
-    suspend fun sendPasswordCode(
-        @Query("action") action: String = "send_password_code",
+    /**
+     * "¿Olvidaste tu contraseña?" — igual que recoverPassword() del panel.
+     *
+     * ⚠️ NO va a la API del sitio sino al HUB, y por eso lleva la URL
+     * completa: es el único endpoint de la app que vive en otro dominio.
+     * El HUB manda una contraseña TEMPORAL al correo; con ella se entra
+     * normal y luego toca cambiarla.
+     */
+    @POST
+    suspend fun hubRecoverPassword(
+        @Url url: String,
         @Body request: EmailRequest
     ): Response<SuccessResponse>
 
-    /** Paso 2: cambia la contraseña con el código recibido */
+    /**
+     * Manda un código de 6 dígitos al correo del usuario indicado.
+     *
+     * ⚠️ Exige sesión iniciada y recibe el ID del usuario, no su correo:
+     * es para cambiar contraseñas DESDE DENTRO del panel (la tuya, o la
+     * de otro si eres Super Admin). Para el "olvidé mi contraseña" de
+     * quien no puede entrar, usa hubRecoverPassword.
+     */
+    @POST("usuarios.php")
+    suspend fun sendPasswordCode(
+        @Query("action") action: String = "send_password_code",
+        @Body request: UserIdRequest
+    ): Response<SuccessResponse>
+
+    /** Paso 2 del anterior: comprueba el código y guarda la contraseña */
     @POST("usuarios.php")
     suspend fun changePasswordWithCode(
         @Query("action") action: String = "change_password_with_code",
@@ -328,6 +350,12 @@ interface TEMApiService {
     @GET("gcal.php")
     suspend fun gcalList(@Query("action") action: String = "list"): Response<GcalListResponse>
 
+    /** Calendarios de cada cuenta, para el selector del editor de planes */
+    @GET("gcal.php")
+    suspend fun gcalListCalendars(
+        @Query("action") action: String = "list_calendars"
+    ): Response<GcalCalendarsResponse>
+
     @POST("gcal.php")
     suspend fun gcalSwitch(
         @Query("action") action: String = "switch",
@@ -363,14 +391,16 @@ data class IdRequest(@SerializedName("id") val id: String)
 data class EmailRequest(@SerializedName("email") val email: String)
 
 data class ChangeOwnPasswordRequest(
-    @SerializedName("current") val current: String,
-    @SerializedName("password") val password: String
+    @SerializedName("new_password") val newPassword: String
 )
 
+data class UserIdRequest(@SerializedName("user_id") val userId: String)
+
 data class PasswordCodeRequest(
-    @SerializedName("email") val email: String,
+    @SerializedName("user_id") val userId: String,
+    /** Seis dígitos */
     @SerializedName("code") val code: String,
-    @SerializedName("password") val password: String
+    @SerializedName("new_password") val newPassword: String
 )
 
 data class ReservationsRequest(
@@ -381,8 +411,18 @@ data class UpdateDateRequest(
     @SerializedName("id") val id: String,
     /** Fecha ya formateada en español que se le muestra al cliente */
     @SerializedName("date") val date: String,
-    /** ISO 8601 — la que manda de verdad */
-    @SerializedName("dateRaw") val dateRaw: String
+    /**
+     * ISO 8601 — la que manda de verdad.
+     *
+     * ⚠️ Va al MEDIODÍA local del día elegido, no a la hora de la salida.
+     * La hora real viaja aparte en horaInicio/horaFin, que es de donde el
+     * servidor la saca para recrear el evento de Google Calendar. Es lo
+     * mismo que hace rescheduleReservationDate() en el panel web.
+     */
+    @SerializedName("dateRaw") val dateRaw: String,
+    /** "HH:mm" de la salida en el día nuevo; vacío = el plan no tiene horarios */
+    @SerializedName("horaInicio") val horaInicio: String = "",
+    @SerializedName("horaFin") val horaFin: String = ""
 )
 
 data class ToursRequest(@SerializedName("tours") val tours: List<Tour>)

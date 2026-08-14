@@ -15,7 +15,13 @@ import com.google.gson.annotations.SerializedName
 data class LoginResponse(
     @SerializedName("token") val token: String,
     @SerializedName("user") val user: User,
-    @SerializedName("expires_in") val expiresIn: Long = 2592000  // 30 días
+    @SerializedName("expires_in") val expiresIn: Long = 2592000,  // 30 días
+    /**
+     * El servidor pide que cree su contraseña definitiva antes de usar el
+     * panel. Se mira junto con `user.temp_password`, igual que adminLogin()
+     * en admin-js/auth.js:48 — según el caso viene uno u otro.
+     */
+    @SerializedName("must_change_password") val mustChangePassword: Boolean = false
 )
 
 /**

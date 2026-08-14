@@ -14,14 +14,17 @@ android {
         applicationId = "com.theextramile.admin"
         minSdk = 24
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.2.0"
+        versionCode = 4
+        versionName = "1.3.0"
 
         // ╔═══════════════════════════════════════════════════════════╗
-        // ║   URL del HUB CENTRAL (para tema remoto + lookup)         ║
+        // ║   URL del HUB CENTRAL                                     ║
+        // ║                                                           ║
+        // ║   Se usa SOLO para "¿Olvidaste tu contraseña?": el HUB     ║
+        // ║   manda una contraseña temporal al correo. Los colores ya  ║
+        // ║   NO vienen de aquí (ver ui/theme/Color.kt).               ║
         // ╚═══════════════════════════════════════════════════════════╝
         buildConfigField("String", "HUB_URL", "\"https://gpanelcol.online/hub.php\"")
-        buildConfigField("String", "HUB_BASE_URL", "\"https://gpanelcol.online/\"")
 
         // URL de fallback (en caso de no haber sesión todavía)
         buildConfigField("String", "API_BASE_URL", "\"https://theextramille.online/api/\"")
@@ -45,6 +48,17 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+
+        /*
+         * La app usa java.time (LocalDate, Instant, DateTimeFormatter) en
+         * Reservas, Calendario, Blog y Extracto, pero minSdk es 24 y esas
+         * clases solo existen de forma nativa desde API 26. En Android 7
+         * esas pantallas cerraban la app con NoClassDefFoundError.
+         *
+         * El "desugaring" mete una copia de esas clases dentro del APK, así
+         * que funcionan también en Android 7 sin tocar el código.
+         */
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "17"
@@ -64,6 +78,9 @@ android {
 }
 
 dependencies {
+    // java.time en Android 7 (ver isCoreLibraryDesugaringEnabled arriba)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+
     // Core
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")

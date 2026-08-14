@@ -9,6 +9,7 @@ import com.theextramile.admin.data.repository.GoogleCalendarRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -19,7 +20,8 @@ data class GcalUiState(
 )
 
 class GoogleCalendarViewModel(
-    val repository: GoogleCalendarRepository
+    val repository: GoogleCalendarRepository,
+    private val sessionManager: com.theextramile.admin.data.local.SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GcalUiState())
@@ -29,9 +31,22 @@ class GoogleCalendarViewModel(
     val activeEmail: StateFlow<String?> = repository.activeEmail
     val configStatus: StateFlow<GcalConfigStatus> = repository.configStatus
 
-    /** URL para abrir el flujo OAuth en el navegador */
-    val authUrl: String
-        get() = "${BuildConfig.API_BASE_URL}gcal.php?action=start_auth"
+    /**
+     * URL para abrir el flujo OAuth en el navegador.
+     *
+     * ⚠️ El token va en la URL a propósito. `gcal.php?action=start_auth`
+     * exige un admin autenticado, y quien abre esta dirección es el
+     * navegador del teléfono, que no manda la cabecera Authorization de la
+     * app. Es el mismo apaño que hace el panel web con su ventana emergente
+     * (connectGoogleCalendar en admin-js/gcal.js): sin el `auth`, el
+     * servidor rechaza el vínculo y la cuenta nunca se conecta.
+     */
+    suspend fun buildAuthUrl(): String {
+        val base = "${BuildConfig.API_BASE_URL}gcal.php?action=start_auth"
+        val token = sessionManager.currentToken.first()
+        return if (token.isNullOrBlank()) base
+        else base + "&auth=" + java.net.URLEncoder.encode(token, "UTF-8")
+    }
 
     init { refresh() }
 

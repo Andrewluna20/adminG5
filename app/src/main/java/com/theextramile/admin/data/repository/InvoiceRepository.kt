@@ -39,10 +39,17 @@ Aquí está tu factura para *{tour}*.
 
     /**
      * Construye la URL de la factura (PDF que el cliente puede abrir).
+     *
+     * ⚠️ `action=realpdf` es obligatorio. Sin él, invoice.php cae en su
+     * acción por defecto ('preview'), que devuelve la factura como página
+     * HTML pensada para imprimir con Ctrl+P desde un computador. Al
+     * cliente, que abre el enlace en el teléfono, eso le llega como una
+     * página web y no como el PDF que espera. Con `realpdf` devuelve el
+     * PDF de verdad, el mismo que se adjunta al correo de confirmación.
      */
     fun getInvoiceUrl(reservationId: String): String {
         val base = BuildConfig.API_BASE_URL.trimEnd('/')
-        return "$base/invoice.php?id=$reservationId"
+        return "$base/invoice.php?action=realpdf&id=$reservationId"
     }
 
     /**

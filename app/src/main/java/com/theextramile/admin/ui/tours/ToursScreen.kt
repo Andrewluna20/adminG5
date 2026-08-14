@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.theextramile.admin.data.model.Tour
+import com.theextramile.admin.ui.blog.absoluteUrl
 import com.theextramile.admin.ui.components.*
 import com.theextramile.admin.ui.theme.*
 
@@ -35,6 +36,9 @@ import com.theextramile.admin.ui.theme.*
 @Composable
 fun ToursScreen(
     viewModel: ToursViewModel,
+    siteBaseUrl: String,
+    /** El precio neto es el costo interno: solo lo ve y lo edita el Super Admin */
+    canEditNet: Boolean,
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -66,7 +70,7 @@ fun ToursScreen(
                 .offset(180.dp, (-60).dp)
                 .clip(CircleShape)
                 .background(
-                    Brush.radialGradient(listOf(OrangeWarm.copy(alpha = 0.2f), Color.Transparent))
+                    Brush.radialGradient(listOf(Color.Transparent, Color.Transparent))
                 )
                 .blur(60.dp)
         )
@@ -131,6 +135,7 @@ fun ToursScreen(
                         items(tours, key = { it.id }) { tour ->
                             TourCard(
                                 tour = tour,
+                                siteBaseUrl = siteBaseUrl,
                                 isUpdating = tour.id in uiState.updatingIds,
                                 onClick = { editingTour = tour },
                                 onToggleActive = { viewModel.toggleActive(tour.id) },
@@ -153,7 +158,9 @@ fun ToursScreen(
 
     if (editingTour != null || creatingNew) {
         TourEditSheet(
+            siteBaseUrl = siteBaseUrl,
             tour = editingTour,
+            canEditNet = canEditNet,
             viewModel = viewModel,
             onDismiss = { editingTour = null; creatingNew = false }
         )
@@ -188,6 +195,7 @@ fun ToursScreen(
 @Composable
 private fun TourCard(
     tour: Tour,
+    siteBaseUrl: String,
     isUpdating: Boolean,
     onClick: () -> Unit,
     onToggleActive: () -> Unit,
@@ -209,7 +217,7 @@ private fun TourCard(
             ) {
                 if (tour.hasImage) {
                     AsyncImage(
-                        model = tour.img,
+                        model = absoluteUrl(tour.img, siteBaseUrl),
                         contentDescription = tour.title,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
